@@ -11,15 +11,23 @@ HEIGHT = 950
 PI = math.pi
 player_images = []
 for i in range(1,5):
-    player_images.append(pygame.transform.scale(pygame.image.load(f'assets/player_images/{i}.png'), (35,35)))
+    player_images.append(pygame.transform.scale(pygame.image.load(f'assets/player_images/{i}.png'), (45,45)))
 
-player_x = 325
-player_y = 245
+player_x = 450
+player_y = 663
 direction = 0
 counter = 0
+flicker = False
 valid_turns = [False, False, False, False]
 direction_command = 0
 player_speed = 2
+score = 0
+power = False
+power_counter = 0
+eaten_ghosts = [False, False, False, False]
+startup_counter = 0
+moving = False
+lives = 3
 
 screen_padding = HEIGHT - WIDTH
 
@@ -37,7 +45,7 @@ def drawboard(level):
         for j in range(len(level[i])):
             if level[i][j] == 1:
                 pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), WIDTH // 225)
-            if level[i][j] == 2:
+            if level[i][j] == 2 and not flicker:
                 pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), WIDTH // 90)
             if level[i][j] == 3:
                 pygame.draw.line(screen, color, (j * num2 + (0.5 * num2), i * num1), (j * num2 + (0.5 * num2), i * num1 + num1), WIDTH // 300)
@@ -129,21 +137,64 @@ def move_player(player_x, player_y):
         player_y += player_speed
     return player_x, player_y
 
+def check_collisions(score, power, power_counter, eaten_ghosts):
+    num1 = (HEIGHT - 50) // 32
+    num2 = WIDTH // 30
+    if 0 < player_x < 870:
+        if level[center_y // num1][center_x // num2] == 1:
+            level[center_y // num1][center_x // num2] = 0
+            score += 10
+        if level[center_y // num1][center_x // num2] == 2:
+            level[center_y // num1][center_x // num2] = 0
+            score += 50
+            power = True
+            power_counter = 0
+            eaten_ghosts = [False, False, False, False]
+            
+    return score, power, power_counter, eaten_ghosts
+
+def draw_misc():
+    score_text = font.render(f'Score: {score}', True, 'white')
+    screen.blit(score_text, (10, 920))
+    if power:
+        pygame.draw.circle(screen, 'blue', (140, 930), 15)
+    for i in range(lives):
+        screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))
+
+
 run = True
 while run:
     timer.tick(fps)
     if counter < 19:
         counter += 1
+        if counter > 3:
+            flicker = False
     else:
-        counter = 0    
+        counter = 0
+        flicker = True
+    if power and power_counter < 600:
+        power_counter += 1
+    elif power and power_counter >= 600:
+        power_counter = 0
+        power = False
+        eaten_ghosts = [False, False, False, False]
+    if startup_counter < 180:
+        moving = False
+        startup_counter += 1
+    else:
+        moving = True    
+    
     
     screen.fill('black')
     drawboard(level)
     draw_player()
+    draw_misc()
     center_x = player_x + 23
     center_y = player_y + 24
     valid_turns = check_position(center_x, center_y)
-    player_x, player_y = move_player(player_x, player_y)
+    if moving:
+        player_x, player_y = move_player(player_x, player_y)
+    score, power, power_counter, eaten_ghosts = check_collisions(score, power, power_counter, eaten_ghosts)
 
 
     for event in pygame.event.get():
