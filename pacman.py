@@ -58,12 +58,7 @@ blinky_box = False
 inky_box = False
 clyde_box = False
 pinky_box = False
-ghost_speed = 2
-
-
-
-
-
+ghost_speeds = [2,2,2,2]
 
 startup_counter = 0
 moving = False
@@ -300,7 +295,7 @@ class Ghost:
         else:
             self.turns[0] = True
             self.turns[1] = True
-        if 350 < self.x_pos < 550 and 370 < self.y_pos < 490:
+        if 350 < self.x_pos < 550 and 370 < self.y_pos < 480:
             self.in_box = True
         else:
             self.in_box = False
@@ -442,20 +437,40 @@ def get_targets(blinky_x, blinky_y, inky_x, inky_y, pinky_x, pinky_y, clyde_x, c
         runaway_y = 0
     return_target = (380, 400)
     if power:
-        if not blinky.dead:
+        if not blinky.dead and not eaten_ghosts[0]:
             blinky_target = (runaway_x, runaway_y)
+        elif not blinky.dead and eaten_ghosts[0]:
+            if 340 < blinky_x < 560 and 340 < blinky_y < 500:
+                blinky_target = (400, 100)
+            else: 
+                blinky_target = (player_x, player_y)
         else: 
             blinky_target = return_target
-        if not inky.dead:
+        if not inky.dead and not eaten_ghosts[1]:
             inky_target = (runaway_x, player_y)
+        elif not inky.dead and eaten_ghosts[1]:
+            if 340 < inky_x < 560 and 340 < inky_y < 500:
+                inky_target = (400, 100)
+            else: 
+                inky_target = (player_x, player_y)
         else: 
             inky_target = return_target
-        if not pinky.dead:
+        if not pinky.dead and not eaten_ghosts[2]:
             pinky_target = (player_x, runaway_y)
+        elif not pinky.dead and eaten_ghosts[2]:
+            if 340 < inky_x < 560 and 340 < inky_y < 500:
+                pinky_target = (400, 100)
+            else: 
+                pinky_target = (player_x, player_y)
         else: 
             pinky_target = return_target
-        if not clyde.dead:
+        if not clyde.dead and not eaten_ghosts[3]:
             clyde_target = (450, 450)
+        elif not clyde.dead and eaten_ghosts[3]:
+            if 340 < clyde_x < 560 and 340 < clyde_y < 500:
+                clyde_target = (400, 100)
+            else: 
+                clyde_target = (player_x, player_y)
         else: 
             clyde_target = return_target
     else:
@@ -517,13 +532,26 @@ while run:
     drawboard(level)
     center_x = player_x + 23
     center_y = player_y + 24
+    if power:
+        ghost_speeds = [1,1,1,1]
+    else:
+        ghost_speeds = [2,2,2,2]
+    if blinky_dead:
+        ghost_speeds[0] = 4
+    if inky_dead:
+        ghost_speeds[1] = 4
+    if pinky_dead:
+        ghost_speeds[2] = 4
+    if clyde_dead:
+        ghost_speeds[3] = 4
+   
     player_circle = pygame.draw.circle(screen, 'black', (center_x, center_y), 20, 2)
     draw_player()
     
-    blinky = Ghost(blinky_x, blinky_y, targets[0], ghost_speed, blinky_image, blinky_direction, blinky_dead, blinky_box, 0)
-    inky = Ghost(inky_x, inky_y, targets[1], ghost_speed, inky_image, inky_direction, inky_dead, inky_box, 1)
-    pinky = Ghost(pinky_x, pinky_y, targets[2], ghost_speed, pinky_image, pinky_direction, pinky_dead, pinky_box, 2)
-    clyde = Ghost(clyde_x, clyde_y, targets[3], ghost_speed, clyde_image, clyde_direction, clyde_dead, clyde_box, 3)
+    blinky = Ghost(blinky_x, blinky_y, targets[0], ghost_speeds[0], blinky_image, blinky_direction, blinky_dead, blinky_box, 0)
+    inky = Ghost(inky_x, inky_y, targets[1], ghost_speeds[1], inky_image, inky_direction, inky_dead, inky_box, 1)
+    pinky = Ghost(pinky_x, pinky_y, targets[2], ghost_speeds[2], pinky_image, pinky_direction, pinky_dead, pinky_box, 2)
+    clyde = Ghost(clyde_x, clyde_y, targets[3], ghost_speeds[3], clyde_image, clyde_direction, clyde_dead, clyde_box, 3)
     draw_misc()
     targets = get_targets(blinky_x, blinky_y, inky_x, inky_y, pinky_x, pinky_y, clyde_x, clyde_y)
     valid_turns = check_position(center_x, center_y)
